@@ -174,7 +174,7 @@ impl App {
                                 .unwrap_or(&"请选择".to_string()),
                         )
                         .show_ui(ui, |ui| {
-                            for partition in system_partitions {
+                            for partition in &system_partitions {
                                 let label = format!(
                                     "{} {} ({:.1} GB) [有系统]",
                                     partition.letter,
