@@ -1,0 +1,110 @@
+name: Build LetRecovery
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # 允许手动触发
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-normal:
+    name: 编译正常系统端
+    runs-on: windows-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 安装 Rust
+      uses: dtolnay/rust-toolchain@stable
+      
+    - name: 缓存 Cargo
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          windows/target/
+        key: ${{ runner.os }}-cargo-normal-${{ hashFiles('windows/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-normal-
+          
+    - name: 编译正常系统端
+      working-directory: windows
+      run: cargo build --release
+      
+    - name: 上传正常系统端产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: LetRecovery-windows-x64
+        path: windows/target/release/LetRecovery.exe
+        
+  build-pe:
+    name: 编译 PE 端
+    runs-on: windows-latest
+    
+    steps:
+    - name: 检出代码
+      uses: actions/checkout@v4
+      
+    - name: 安装 Rust
+      uses: dtolnay/rust-toolchain@stable
+      
+    - name: 缓存 Cargo
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          PE/target/
+        key: ${{ runner.os }}-cargo-pe-${{ hashFiles('PE/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-pe-
+          
+    - name: 编译 PE 端
+      working-directory: PE
+      run: cargo build --release
+      
+    - name: 上传 PE 端产物
+      uses: actions/upload-artifact@v4
+      with:
+        name: LetRecoveryPE-windows-x64
+        path: PE/target/release/LetRecoveryPE.exe
+        
+  release:
+    name: 创建发布
+    needs: [build-normal, build-pe]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: 下载正常系统端产物
+      uses: actions/download-artifact@v4
+      with:
+        name: LetRecovery-windows-x64
+        path: ./release
+        
+    - name: 下载 PE 端产物
+      uses: actions/download-artifact@v4
+      with:
+        name: LetRecoveryPE-windows-x64
+        path: ./release
+        
+    - name: 创建 Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: |
+          ./release/LetRecovery.exe
+          ./release/LetRecoveryPE.exe
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
