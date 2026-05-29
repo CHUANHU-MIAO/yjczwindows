@@ -1,0 +1,46 @@
+# Rust 编译产物
+target/
+*.exe
+*.dll
+*.lib
+*.pdb
+
+# 打包产物
+release/
+
+# 日志文件
+log/
+*.log
+
+# 运行时文件（不分发）
+bin/
+drivers/
+PE/*.wim
+tools/
+uefiseven/
+
+# 运行时配置和缓存
+pe_cache.json
+config.json
+*.cache
+
+# IDE 配置
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Windows 系统文件
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# 调试文件
+*.dmp
+*.mdf
+
+# 压缩包
+*.zip
+*.7z
+*.rar
