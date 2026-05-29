@@ -17,11 +17,14 @@ use windows::{
     Win32::Storage::FileSystem::{
         CreateFileW, GetDriveTypeW, GetVolumeInformationW,
         FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING,
+        FILE_GENERIC_READ, FILE_GENERIC_WRITE, FILE_ACCESS_RIGHTS,
     },
     Win32::System::IO::DeviceIoControl,
     Win32::System::Ioctl::{
         IOCTL_STORAGE_GET_DEVICE_NUMBER, IOCTL_DISK_GET_DRIVE_LAYOUT_EX,
+        IOCTL_STORAGE_EJECT_MEDIA,
         PARTITION_STYLE_GPT, PARTITION_STYLE_MBR,
+        FSCTL_LOCK_VOLUME, FSCTL_DISMOUNT_VOLUME, FSCTL_UNLOCK_VOLUME,
     },
 };
 
@@ -359,10 +362,9 @@ impl UsbManager {
             .collect();
 
         let access = if write_access {
-            windows::Win32::Storage::FileSystem::FILE_GENERIC_READ
-                | windows::Win32::Storage::FileSystem::FILE_GENERIC_WRITE
+            FILE_GENERIC_READ | FILE_GENERIC_WRITE
         } else {
-            0u32
+            FILE_ACCESS_RIGHTS(0)
         };
 
         unsafe {
@@ -400,8 +402,7 @@ impl UsbManager {
         unsafe {
             let handle = CreateFileW(
                 PCWSTR::from_raw(wide.as_ptr()),
-                windows::Win32::Storage::FileSystem::FILE_GENERIC_READ
-                    | windows::Win32::Storage::FileSystem::FILE_GENERIC_WRITE,
+                FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                 FILE_SHARE_READ | FILE_SHARE_WRITE,
                 None,
                 OPEN_EXISTING,
@@ -464,8 +465,7 @@ impl UsbManager {
         unsafe {
             let handle = CreateFileW(
                 PCWSTR::from_raw(wide.as_ptr()),
-                windows::Win32::Storage::FileSystem::FILE_GENERIC_READ
-                    | windows::Win32::Storage::FileSystem::FILE_GENERIC_WRITE,
+                FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                 FILE_SHARE_READ | FILE_SHARE_WRITE,
                 None,
                 OPEN_EXISTING,
@@ -525,8 +525,7 @@ impl UsbManager {
         unsafe {
             let handle = CreateFileW(
                 PCWSTR::from_raw(wide.as_ptr()),
-                windows::Win32::Storage::FileSystem::FILE_GENERIC_READ
-                    | windows::Win32::Storage::FileSystem::FILE_GENERIC_WRITE,
+                FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                 FILE_SHARE_READ | FILE_SHARE_WRITE,
                 None,
                 OPEN_EXISTING,

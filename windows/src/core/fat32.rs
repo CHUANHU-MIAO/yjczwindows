@@ -267,7 +267,7 @@ impl VolumeFormatter {
             FsType::ReFS => "/FS:ReFS",
         };
 
-        let mut args: Vec<String> = vec![partition, fs.to_string()];
+        let mut args: Vec<String> = vec![partition.clone(), fs.to_string()];
 
         if quick_format {
             args.push("/Q".to_string());

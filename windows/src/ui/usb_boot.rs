@@ -399,31 +399,46 @@ impl App {
 
     /// 检查 USB 写入进度
     fn check_usb_write_progress(&mut self) {
-        if let Some(ref rx) = self.usb_boot_state.progress_rx {
-            // 非阻塞读取最新进度
-            while let Ok(progress) = rx.try_recv() {
-                if progress.finished {
-                    self.usb_boot_state.is_writing = false;
-                    self.usb_boot_state.progress_rx = None;
+        // 先检查是否有 receiver
+        let has_rx = self.usb_boot_state.progress_rx.is_some();
+        if !has_rx {
+            return;
+        }
+        
+        // 非阻塞读取最新进度
+        let mut should_clear_rx = false;
+        while let Some(ref rx) = self.usb_boot_state.progress_rx {
+            match rx.try_recv() {
+                Ok(progress) => {
+                    if progress.finished {
+                        self.usb_boot_state.is_writing = false;
+                        should_clear_rx = true;
 
-                    if let Some(ref error) = progress.error {
-                        self.usb_boot_state.status_message =
-                            format!("❌ 制作失败: {}", error);
-                        self.usb_boot_state.write_progress = Some(progress);
+                        if let Some(ref error) = progress.error {
+                            self.usb_boot_state.status_message =
+                                format!("❌ 制作失败: {}", error);
+                            self.usb_boot_state.write_progress = Some(progress);
+                        } else {
+                            self.usb_boot_state.status_message =
+                                "✅ 启动盘制作完成！".to_string();
+                            self.usb_boot_state.write_progress = Some(progress);
+                        }
                     } else {
-                        self.usb_boot_state.status_message =
-                            "✅ 启动盘制作完成！".to_string();
+                        self.usb_boot_state.status_message = format!(
+                            "正在制作: {} ({}%)",
+                            progress.step,
+                            progress.total_progress
+                        );
                         self.usb_boot_state.write_progress = Some(progress);
                     }
-                } else {
-                    self.usb_boot_state.status_message = format!(
-                        "正在制作: {} ({}%)",
-                        progress.step,
-                        progress.total_progress
-                    );
-                    self.usb_boot_state.write_progress = Some(progress);
                 }
+                Err(_) => break,
             }
+        }
+        
+        // 在循环外清理 receiver
+        if should_clear_rx {
+            self.usb_boot_state.progress_rx = None;
         }
     }
 }
