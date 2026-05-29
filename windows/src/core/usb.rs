@@ -362,9 +362,9 @@ impl UsbManager {
             .collect();
 
         let access = if write_access {
-            FILE_GENERIC_READ | FILE_GENERIC_WRITE
+            (FILE_GENERIC_READ | FILE_GENERIC_WRITE).0
         } else {
-            FILE_ACCESS_RIGHTS(0)
+            0u32
         };
 
         unsafe {
@@ -389,10 +389,6 @@ impl UsbManager {
     /// 锁定卷（写入前必须锁定）
     #[cfg(windows)]
     pub fn lock_volume(letter: char) -> Result<()> {
-        use windows::Win32::Storage::FileSystem::{
-            FSCTL_LOCK_VOLUME, FSCTL_DISMOUNT_VOLUME,
-        };
-
         let volume_path = format!("\\\\.\\{}:", letter);
         let wide: Vec<u16> = volume_path
             .encode_utf16()
@@ -402,7 +398,7 @@ impl UsbManager {
         unsafe {
             let handle = CreateFileW(
                 PCWSTR::from_raw(wide.as_ptr()),
-                FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+                (FILE_GENERIC_READ | FILE_GENERIC_WRITE).0,
                 FILE_SHARE_READ | FILE_SHARE_WRITE,
                 None,
                 OPEN_EXISTING,
@@ -454,8 +450,6 @@ impl UsbManager {
     /// 解锁卷
     #[cfg(windows)]
     pub fn unlock_volume(letter: char) -> Result<()> {
-        use windows::Win32::Storage::FileSystem::FSCTL_UNLOCK_VOLUME;
-
         let volume_path = format!("\\\\.\\{}:", letter);
         let wide: Vec<u16> = volume_path
             .encode_utf16()
@@ -465,7 +459,7 @@ impl UsbManager {
         unsafe {
             let handle = CreateFileW(
                 PCWSTR::from_raw(wide.as_ptr()),
-                FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+                (FILE_GENERIC_READ | FILE_GENERIC_WRITE).0,
                 FILE_SHARE_READ | FILE_SHARE_WRITE,
                 None,
                 OPEN_EXISTING,
@@ -514,8 +508,6 @@ impl UsbManager {
     /// 弹出 USB 设备
     #[cfg(windows)]
     pub fn eject_device(letter: char) -> Result<()> {
-        use windows::Win32::Storage::FileSystem::IOCTL_STORAGE_EJECT_MEDIA;
-
         let volume_path = format!("\\\\.\\{}:", letter);
         let wide: Vec<u16> = volume_path
             .encode_utf16()
@@ -525,7 +517,7 @@ impl UsbManager {
         unsafe {
             let handle = CreateFileW(
                 PCWSTR::from_raw(wide.as_ptr()),
-                FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+                (FILE_GENERIC_READ | FILE_GENERIC_WRITE).0,
                 FILE_SHARE_READ | FILE_SHARE_WRITE,
                 None,
                 OPEN_EXISTING,

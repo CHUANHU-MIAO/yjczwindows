@@ -1707,7 +1707,10 @@ impl eframe::App for App {
             ctx.request_repaint_after(std::time::Duration::from_millis(100));
         }
     }
+}
 
+// 独立的 impl App 块，用于自定义方法
+impl App {
     // 直接实现 tools 模块中的方法
     pub fn start_load_windows_partitions(&mut self) {
         use std::sync::mpsc;
@@ -1740,11 +1743,11 @@ impl eframe::App for App {
         }
     }
 
-    pub fn render_install_bitlocker_dialog(&mut self, ui: &mut egui::Ui) {
+    pub fn render_install_bitlocker_dialog(&mut self, _ui: &mut egui::Ui) {
         // 简化实现
     }
 
-    pub fn render_backup_bitlocker_dialog(&mut self, ui: &mut egui::Ui) {
+    pub fn render_backup_bitlocker_dialog(&mut self, _ui: &mut egui::Ui) {
         // 简化实现
     }
 
